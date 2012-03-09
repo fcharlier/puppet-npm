@@ -1,0 +1,17 @@
+# Puppet NodeJS module
+## Description:
+This is a puppet module that installs __NodeJS__ 0.6.12 from source, installs npm, and creates an __npm__ provider.
+
+## Where it goes:
+__NodeJS__ and __npm__ are both installed into */home/node/opt/bin* for the *node* user.
+
+## Usage:
+Clone this repository into your Puppet submodule directory and use `include nodejs` in your puppet manifests to install
+NodeJS by using this package.
+
+If you want to install a __npm__  module, for example uglifyjs, use the following snippet:
+`package {
+    "uglifyjs":
+        ensure => installed,
+        provider => npm,
+}`
