@@ -10,8 +10,8 @@ Clone this repository into your Puppet submodule directory and use `include node
 NodeJS by using this package.
 
 If you want to install a __npm__  module, for example uglifyjs, use the following snippet:
-`package {
-    "uglifyjs":
-        ensure => installed,
-        provider => npm,
+`package {<br />
+    "uglifyjs": <br />
+        ensure => installed, <br />
+        provider => npm, <br />
 }`
