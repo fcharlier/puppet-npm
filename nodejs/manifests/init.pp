@@ -1,6 +1,12 @@
-
-
+# Class: nodesjs
+#
+# Description:
+#  Ensure all needed install tools are availeable and install nodejs from source
+#
+# Usage:
+# `include nodejs`
 class nodejs {
+  include nodejs::config
 
   user { "node":
     ensure => "present",
@@ -24,7 +30,7 @@ class nodejs {
     owner => "node"
   }
 
-  file { "/home/node/opt":
+  file { "${home_path}":
     ensure => "directory",
     require => File["/home/node"],
     owner => "node"
@@ -36,7 +42,7 @@ class nodejs {
     content => template('nodejs/node_bashrc.erb')
   }
 
-  file { "/tmp/node-v0.3.3.tar.gz":
+  file { "/tmp/${package_tar}":
     source => "puppet:///modules/nodejs/node-v0.3.3.tar.gz",
     ensure => "present",
     owner => "node",
@@ -44,23 +50,23 @@ class nodejs {
   }
 
   exec { "extract_node":
-    command => "tar -xzf node-v0.3.3.tar.gz",
+    command => "tar -xzf ${package_tar}",
     cwd => "/tmp",
-    creates => "/tmp/node-v0.3.3",
-    require => [File["/tmp/node-v0.3.3.tar.gz"], User["node"]],
+    creates => "/tmp/${package_name}",
+    require => [File["/tmp/${package_tar}"], User["node"]],
     user => "node"
   }
 
-  exec { "bash ./configure --prefix=/home/node/opt":
+  exec { "bash ./configure --prefix=${home_path}":
     alias => "configure_node",
-    cwd => "/tmp/node-v0.3.3",
+    cwd => "/tmp/${package_name}",
     require => [Exec["extract_node"], Package["openssl"], Package["openssl-devel"], Package["gcc-c++"]],
     timeout => 0,
-    creates => "/tmp/node-v0.3.3/.lock-wscript",
+    creates => "/tmp/${package_name}/.lock-wscript",
     user => "node"
   }
 
-  file { "/tmp/node-v0.3.3":
+  file { "/tmp/${package_name}":
     ensure => "directory",
     owner => "node",
     group => "node",
@@ -69,7 +75,7 @@ class nodejs {
 
   exec { "make_node":
     command => "make",
-    cwd => "/tmp/node-v0.3.3",
+    cwd => "/tmp/${package_name}",
     require => Exec["configure_node"],
     timeout => 0,
     user => "node"
@@ -77,21 +83,21 @@ class nodejs {
 
   exec { "install_node":
     command => "make install",
-    cwd => "/tmp/node-v0.3.3",
+    cwd => "/tmp/${package_name}",
     require => Exec["make_node"],
     timeout => 0,
-    creates => "/home/node/opt/bin/node",
+    creates => "${home_path}/bin/node",
     user => "node"
   }
 
-  file { "/home/node/opt/bin/node":
+  file { "${home_path}/bin/node":
     owner => "node",
     group => "node",
     require => Exec["install_node"],
     recurse => true
   }
 
-  file { "/home/node/opt/bin/node-waf":
+  file { "${home_path}/bin/node-waf":
     owner => "node",
     group => "node",
     recurse => true,
