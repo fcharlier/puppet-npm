@@ -6,7 +6,10 @@
 # Usage:
 # `include nodejs`
 class nodejs {
-  include nodejs::config
+  $package_name = 'node-v0.6.12'
+  $package_tar = '$package_name.tar.gz'
+  $package_path = 'puppet:///modules/nodejs/$package_tar'
+  $home_path = '/home/node/opt'
 
   user { "node":
     ensure => "present",
@@ -52,6 +55,7 @@ class nodejs {
   exec { "extract_node":
     command => "tar -xzf ${package_tar}",
     cwd => "/tmp",
+    path => ["/usr/bin", "/usr/sbin", "/bin"],
     creates => "/tmp/${package_name}",
     require => [File["/tmp/${package_tar}"], User["node"]],
     user => "node"
@@ -60,6 +64,7 @@ class nodejs {
   exec { "bash ./configure --prefix=${home_path}":
     alias => "configure_node",
     cwd => "/tmp/${package_name}",
+    path => ["/usr/bin", "/usr/sbin", "/bin"],
     require => [Exec["extract_node"], Package["openssl"], Package["openssl-devel"], Package["gcc-c++"]],
     timeout => 0,
     creates => "/tmp/${package_name}/.lock-wscript",
@@ -76,6 +81,7 @@ class nodejs {
   exec { "make_node":
     command => "make",
     cwd => "/tmp/${package_name}",
+      path => ["/usr/bin", "/usr/sbin", "/bin"],
     require => Exec["configure_node"],
     timeout => 0,
     user => "node"
@@ -85,6 +91,7 @@ class nodejs {
     command => "make install",
     cwd => "/tmp/${package_name}",
     require => Exec["make_node"],
+    path => ["/usr/bin", "/usr/sbin", "/bin"],
     timeout => 0,
     creates => "${home_path}/bin/node",
     user => "node"
