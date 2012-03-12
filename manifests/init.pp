@@ -8,6 +8,11 @@
 class nodejs {
   require nodejs::params
 
+  notify {
+    "ssl_lib_dev":
+        message => "param: ${nodejs::params::ssl_lib_dev}",
+  }
+
   user { "node":
       ensure => "present",
       home => "/home/node",
@@ -36,7 +41,7 @@ class nodejs {
       path => "${nodejs::params::home_path}",
       ensure => "directory",
       require => File["/home/node"],
-      owner => "node",
+          owner => "node",
   }
 
   file { "/home/node/.bashrc":
@@ -46,7 +51,7 @@ class nodejs {
   }
 
   file { "/tmp/node_tar":
-      path => "${nodejs::params::package_tar}",
+      path => "/tmp/${nodejs::params::package_tar}",
       source => "${nodejs::params::package_path}",
       ensure => "present",
       owner => "node",
@@ -66,14 +71,14 @@ class nodejs {
       alias => "configure_node",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
-      require => [Exec["extract_node"], Package["openssl"], Package["ssl__dev"], Package["node_gcc"]],
+      require => [Exec["extract_node"], Package["openssl"], Package["ssl_dev"], Package["node_gcc"]],
       timeout => 0,
       creates => "/tmp/$nodejs::params::package_name/.lock-wscript",
       user => "node",
   }
 
   file { "/tmp/node_package":
-      path => "${nodejs::params::package_name}",
+      path => "/tmp/${nodejs::params::package_name}",
       ensure => "directory",
       owner => "node",
       group => "node",
@@ -85,7 +90,7 @@ class nodejs {
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       require => Exec["configure_node"],
-      timeout => 0,
+          timeout => 0,
       user => "node",
   }
 
@@ -93,22 +98,22 @@ class nodejs {
       command => "make install",
       cwd => "/tmp/${nodejs::params::package_name}",
       require => Exec["make_node"],
-      path => ["/usr/bin", "/usr/sbin", "/bin"],
+          path => ["/usr/bin", "/usr/sbin", "/bin"],
       timeout => 0,
       creates => "${nodejs::params::home_path}/bin/node",
       user => "node",
   }
 
   file { "/node/bin/node":
-      path => "${nodejs::params::home_path}",
+      path => "${nodejs::params::home_path}/bin/node",
       owner => "node",
       group => "node",
       require => Exec["install_node"],
-      recurse => true
+          recurse => true
   }
 
   file { "/node/bin/node-waf":
-      path => "${nodejs::params::home_path}",
+      path => "${nodejs::params::home_path}/bin/node-waf",
       owner => "node",
       group => "node",
       recurse => true,
