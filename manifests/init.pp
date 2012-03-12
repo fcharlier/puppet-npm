@@ -10,33 +10,33 @@ class nodejs {
 
   user { "node":
       ensure => "present",
-      home => "/home/node"
+      home => "/home/node",
   }
 
   package { "openssl":
-      ensure => "installed"
+      ensure => "installed",
   }
 
   package { "ssl_dev":
-      name => "${nodejs::params::ssl_lib_dev}"
-      ensure => "installed"
+      name => "${nodejs::params::ssl_lib_dev}",
+      ensure => "installed",
   }
 
   package { "node_gcc":
-      name => "${nodejs::params::gcc}"
-      ensure => "installed"
+      name => "${nodejs::params::gcc}",
+      ensure => "installed",
   }
 
   file { "/home/node":
       ensure => "directory",
-      owner => "node"
+      owner => "node",
   }
 
   file { "node_path":
-      path => "${nodejs::params::home_path}"
+      path => "${nodejs::params::home_path}",
       ensure => "directory",
       require => File["/home/node"],
-      owner => "node"
+      owner => "node",
   }
 
   file { "/home/node/.bashrc":
@@ -46,11 +46,11 @@ class nodejs {
   }
 
   file { "/tmp/node_tar":
-      path => "${nodejs::params::package_tar}"
+      path => "${nodejs::params::package_tar}",
       source => "${nodejs::params::package_path}",
       ensure => "present",
       owner => "node",
-      group => "node"
+      group => "node",
   }
 
   exec { "extract_node":
@@ -59,7 +59,7 @@ class nodejs {
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       creates => "/tmp/{$nodejs::params::package_name}",
       require => [File["/tmp/node_tar"], User["node"]],
-      user => "node"
+      user => "node",
   }
 
   exec { "bash ./configure --prefix=${nodejs::params::home_path}":
@@ -73,7 +73,7 @@ class nodejs {
   }
 
   file { "/tmp/node_package":
-      path => "${nodejs::params::package_name}"
+      path => "${nodejs::params::package_name}",
       ensure => "directory",
       owner => "node",
       group => "node",
@@ -86,7 +86,7 @@ class nodejs {
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       require => Exec["configure_node"],
       timeout => 0,
-      user => "node"
+      user => "node",
   }
 
   exec { "install_node":
@@ -96,11 +96,11 @@ class nodejs {
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       timeout => 0,
       creates => "${nodejs::params::home_path}/bin/node",
-      user => "node"
+      user => "node",
   }
 
   file { "/node/bin/node":
-      path => "${nodejs::params::home_path}"
+      path => "${nodejs::params::home_path}",
       owner => "node",
       group => "node",
       require => Exec["install_node"],
@@ -108,7 +108,7 @@ class nodejs {
   }
 
   file { "/node/bin/node-waf":
-      path => "${nodejs::params::home_path}"
+      path => "${nodejs::params::home_path}",
       owner => "node",
       group => "node",
       recurse => true,
