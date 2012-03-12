@@ -43,7 +43,7 @@ class nodejs {
   }
 
   file { "/tmp/${package_tar}":
-    source => "puppet:///modules/nodejs/node-v0.3.3.tar.gz",
+    source => "${package_path}",
     ensure => "present",
     owner => "node",
     group => "node"
