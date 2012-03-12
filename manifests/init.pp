@@ -32,6 +32,11 @@ class nodejs {
       ensure => "installed",
   }
 
+  package { "libv8-dev":
+      name => "${nodejs::params::libv8_dev}",
+      ensure => installed,
+  }
+
   file { "/home/node":
       ensure => "directory",
       owner => "node",
@@ -67,7 +72,7 @@ class nodejs {
       user => "node",
   }
 
-  exec { "bash ./configure --prefix=${nodejs::params::home_path}":
+  exec { "bash sudo ./configure --prefix=${nodejs::params::home_path}":
       alias => "configure_node",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
@@ -86,7 +91,7 @@ class nodejs {
   }
 
   exec { "make_node":
-      command => "make",
+      command => "sudo make",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       require => Exec["configure_node"],
