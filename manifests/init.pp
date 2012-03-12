@@ -72,7 +72,7 @@ class nodejs {
       user => "node",
   }
 
-  exec { "bash sudo ./configure --prefix=${nodejs::params::home_path}":
+  exec { " sudo bash ./configure --prefix=${nodejs::params::home_path}":
       alias => "configure_node",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
@@ -100,7 +100,7 @@ class nodejs {
   }
 
   exec { "install_node":
-      command => "make install",
+      command => "sudo make install",
       cwd => "/tmp/${nodejs::params::package_name}",
       require => Exec["make_node"],
           path => ["/usr/bin", "/usr/sbin", "/bin"],
