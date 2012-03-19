@@ -15,3 +15,7 @@ If you want to install a __npm__  module, for example uglifyjs, use the followin
         ensure => installed,
         provider => npm, 
 }`
+
+
+#### Note:
+__For installing nodejs from source you need a lot of RAM, 512MB are not enough, 2GB are much better for your VM__
