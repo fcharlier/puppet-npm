@@ -8,78 +8,32 @@
 class nodejs {
   require nodejs::params
 
-  notify {
-    "ssl_lib_dev":
-        message => "param: ${nodejs::params::ssl_lib_dev}",
-  }
-
-  user { "node":
-      ensure => "present",
-      home => "/home/node",
-  }
-
-  package { "openssl":
+  package { "build-essential":
       ensure => "installed",
-  }
-
-  package { "ssl_dev":
-      name => "${nodejs::params::ssl_lib_dev}",
-      ensure => "installed",
-  }
-
-  package { "node_gcc":
-      name => "${nodejs::params::gcc}",
-      ensure => "installed",
-  }
-
-  package { "libv8-dev":
-      name => "${nodejs::params::libv8_dev}",
-      ensure => installed,
-  }
-
-  file { "/home/node":
-      ensure => "directory",
-      owner => "node",
-  }
-
-  file { "node_path":
-      path => "${nodejs::params::home_path}",
-      ensure => "directory",
-      require => File["/home/node"],
-          owner => "node",
-  }
-
-  file { "/home/node/.bashrc":
-      ensure => "present",
-      owner => "node",
-      content => template('nodejs/node_bashrc.erb')
   }
 
   file { "/tmp/node_tar":
       path => "/tmp/${nodejs::params::package_tar}",
       source => "${nodejs::params::package_path}",
       ensure => "present",
-      owner => "node",
-      group => "node",
   }
 
   exec { "extract_node":
       command => "tar -xzf ${nodejs::params::package_tar}",
       cwd => "/tmp",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
-      creates => "/tmp/{$nodejs::params::package_name}",
-      require => [File["/tmp/node_tar"], User["node"]],
-      user => "node",
+      creates => "/tmp/${nodejs::params::package_name}",
+      require => [File["/tmp/node_tar"]],
   }
 
-  exec { " sudo bash ./configure --prefix=${nodejs::params::home_path}":
+  exec { "python ./configure --prefix=${nodejs::params::home_path}":
       alias => "configure_node",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
-      require => [Exec["extract_node"], Package["openssl"], Package["ssl_dev"], Package["node_gcc"]],
+      require => [Exec["extract_node"], Package["build-essential"]],
       timeout => 0,
-      creates => "/tmp/$nodejs::params::package_name/.lock-wscript",
-      user => "node",
+      creates => "/tmp/${nodejs::params::package_name}/.lock-wscript",
+      logoutput => true,
   }
 
   file { "/tmp/node_package":
@@ -91,38 +45,21 @@ class nodejs {
   }
 
   exec { "make_node":
-      command => "sudo make",
+      command => "make",
       cwd => "/tmp/${nodejs::params::package_name}",
       path => ["/usr/bin", "/usr/sbin", "/bin"],
       require => Exec["configure_node"],
-          timeout => 0,
-      user => "node",
+      timeout => 0,
+      logoutput => true,
   }
 
   exec { "install_node":
-      command => "sudo make install",
+      command => "make install",
       cwd => "/tmp/${nodejs::params::package_name}",
       require => Exec["make_node"],
-          path => ["/usr/bin", "/usr/sbin", "/bin"],
+      path => ["/usr/bin", "/usr/sbin", "/bin"],
       timeout => 0,
-      creates => "${nodejs::params::home_path}/bin/node",
-      user => "node",
-  }
-
-  file { "/node/bin/node":
-      path => "${nodejs::params::home_path}/bin/node",
-      owner => "node",
-      group => "node",
-      require => Exec["install_node"],
-          recurse => true
-  }
-
-  file { "/node/bin/node-waf":
-      path => "${nodejs::params::home_path}/bin/node-waf",
-      owner => "node",
-      group => "node",
-      recurse => true,
-          require => Exec["install_node"]
+      logoutput => true,
   }
 
 }
