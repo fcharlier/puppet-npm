@@ -7,7 +7,7 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
   raise Puppet::Error, "The npm provider can only be used as root" if Process.euid != 0
 
   def self.exec(op, pkg)
-    s = execute ["npm", "#{op}", "-g", "#{pkg}"]
+    s = execute ["npm #{op} -g #{pkg}"]
     s.split("\n").collect do | line |
       yield line
     end
@@ -16,7 +16,7 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
   def self.npm_list(hash)
     begin
       list = []
-      exec("list", "installed") do | line |
+      exec("list", "") do | line |
         if npm_hash = npm_split(line)
           npm_hash[:provider] = :npm
           if (npm_hash[:name] == hash[:justme]) or hash[:local]
@@ -37,7 +37,7 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
 
   def self.npm_split(desc)
     split_desc = desc.split(/ /)
-    installed = split_desc[0]
+    installed = split_desc[-1]
     name = installed.split(/@/)[0]
     version = installed.split(/@/)[1]
     if (name.nil? || version.nil?)
@@ -60,7 +60,7 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
     output = self.class.exec("install", resource[:name]) { | line | line }.collect
     self.fail "Could not install: #{resource[:name]}" if output.include?("npm not ok")
   end
-  
+
   def uninstall
     output = self.class.exec("uninstall", resource[:name]) { | line | line }.collect
     self.fail "Could not install: #{resource[:name]}" if output.include?("npm not ok")
@@ -70,6 +70,6 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
     version = nil
     self.class.npm_list(:justme => resource[:name])
   end
-    
+
 end
 
