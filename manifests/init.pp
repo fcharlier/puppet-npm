@@ -39,8 +39,6 @@ class nodejs {
   file { "/tmp/node_package":
       path => "/tmp/${nodejs::params::package_name}",
       ensure => "directory",
-      owner => "node",
-      group => "node",
       require => Exec["configure_node"]
   }
 
