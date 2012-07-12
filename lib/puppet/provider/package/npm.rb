@@ -4,21 +4,25 @@ require 'puppet/provider/package'
 Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package do
   desc "node.js package management with npm"
 
-  def self.exec(op, pkg)
-    s = execute ["npm #{op} -g #{pkg}"]
-    s.split("\n").collect do | line |
-      yield line
-    end
+  # NOTE(fcharlier): npm & nore are currently installed in /usr/local/bin
+  # if this directory is not in the path, add it.
+  # It seems very ugly to me, but had the problem on some machines even with
+  # /usr/local/bin in PATH in /etc/profile and puppet environment …
+  if ENV['PATH'].index(/(^|:)\/usr\/local\/bin(:|$)/).nil?
+      ENV['PATH'] = '/usr/local/bin:' + ENV['PATH']
   end
+  optional_commands :npm => "npm"
 
   def self.npm_list(hash)
     begin
       list = []
-      exec("list", "") do | line |
-        if npm_hash = npm_split(line)
-          npm_hash[:provider] = :npm
-          if (npm_hash[:name] == hash[:justme]) or hash[:local]
-            list << npm_hash
+      if lines = npm("list", "-g").split("\n")
+        lines.each do | line |
+          if npm_hash = npm_split(line)
+            npm_hash[:provider] = :npm
+            if (npm_hash[:name] == hash[:justme]) or hash[:local]
+              list << npm_hash
+            end
           end
         end
       end
@@ -55,12 +59,12 @@ Puppet::Type.type(:package).provide :npm, :parent => Puppet::Provider::Package d
   end
 
   def install
-    output = self.class.exec("install", resource[:name]) { | line | line }.collect
+    output = npm("install", "-g", resource[:name]).split("\n")
     self.fail "Could not install: #{resource[:name]}" if output.include?("npm not ok")
   end
 
   def uninstall
-    output = self.class.exec("uninstall", resource[:name]) { | line | line }.collect
+    output = npm("uninstall", "-g", resource[:name]).split("\n")
     self.fail "Could not install: #{resource[:name]}" if output.include?("npm not ok")
   end
 
